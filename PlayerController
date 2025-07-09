@@ -1,46 +1,45 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// Handles the player's horizontal movement using Unity's new Input System.
-/// </summary>
 public class PlayerMovement : MonoBehaviour
 {
-    // The speed at which the player moves horizontally.
-    [SerializeField] private float moveSpeed = 5f;
-
-    // Reference to the player's Rigidbody2D component.
+    // Player's Rigidbody2D component
     [SerializeField] private Rigidbody2D rb;
 
-    // Stores the horizontal input value.
+    [Header("Movement")]
+    // How fast the player moves left and right
+    [SerializeField] private float moveSpeed = 5f;
+    // Stores left/right input
     private float horizontalMovement;
 
-    /// <summary>
-    /// Called when the script instance is being loaded.
-    /// Gets the Rigidbody2D component attached to the player.
-    /// </summary>
+    [Header("Jumping")]
+    // How strong the jump is
+    [SerializeField] private float jumpPower = 10f;
+
+    // Get the Rigidbody2D component at the start
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
     }
 
-    /// <summary>
-    /// Called once per frame.
-    /// Updates the Rigidbody2D's linear velocity based on input.
-    /// </summary>
+    // Move the player every frame
     private void Update()
     {
-        // Apply horizontal movement while preserving the current vertical velocity.
         rb.linearVelocity = new Vector2(horizontalMovement * moveSpeed, rb.linearVelocity.y);
     }
 
-    /// <summary>
-    /// Called by the Input System when a movement input is received.
-    /// Reads the horizontal component of the input vector.
-    /// </summary>
-    /// <param name="context">The input callback context.</param>
+    // Called when player moves left/right
     public void Move(InputAction.CallbackContext context)
     {
         horizontalMovement = context.ReadValue<Vector2>().x;
+    }
+
+    // Called when player jumps
+    public void Jump(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpPower);
+        }
     }
 }
