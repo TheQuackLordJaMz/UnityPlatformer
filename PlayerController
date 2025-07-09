@@ -15,31 +15,71 @@ public class PlayerMovement : MonoBehaviour
     [Header("Jumping")]
     // How strong the jump is
     [SerializeField] private float jumpPower = 10f;
+    // Max jumps allowed (e.g. double jump)
+    [SerializeField] private int maxJumps = 2;
+    // How many jumps are left
+    [SerializeField] private int jumpsRemaining;
 
-    // Get the Rigidbody2D component at the start
+    [Header("GroundCheck")]
+    // Position to check if player is on ground
+    public Transform groundCheckPos;
+    // Size of ground check box
+    public Vector2 groundCheckSize = new Vector2(0.5f, 0.5f);
+    // Layer that counts as ground
+    public LayerMask groundLayer;
+
+    // Get Rigidbody2D at start
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
     }
 
-    // Move the player every frame
+    // Move player and check ground every frame
     private void Update()
     {
         rb.linearVelocity = new Vector2(horizontalMovement * moveSpeed, rb.linearVelocity.y);
+        GroundCheck();
     }
 
-    // Called when player moves left/right
+    // Get horizontal input from Input System
     public void Move(InputAction.CallbackContext context)
     {
         horizontalMovement = context.ReadValue<Vector2>().x;
     }
 
-    // Called when player jumps
+    // Handle jump input
     public void Jump(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        if (jumpsRemaining > 0) 
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpPower);
+            if (context.performed)
+            {
+                // Full jump when button is pressed
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpPower);
+                jumpsRemaining--;
+            }
+            else if (context.canceled)
+            {
+                // Shorter jump if button is released early
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * 0.5f);
+                jumpsRemaining--;
+            }
         }
+    }
+
+    // Check if player is on ground
+    private void GroundCheck()
+    {
+        if (Physics2D.OverlapBox(groundCheckPos.position, groundCheckSize, 0, groundLayer)) 
+        {
+            jumpsRemaining = maxJumps;
+        }
+    }
+
+    // Draw ground check box in Scene view
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.white;
+        Gizmos.DrawWireCube(groundCheckPos.position, groundCheckSize);
     }
 }
